@@ -70,7 +70,14 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 *Aliases are stored as a list of strings. How will you check if the normalized input matches any alias in the list? Write your approach in pseudocode or plain English.*
 
 ```
-[your answer here]
+For each plant in _plant_db, lowercase each alias and compare against normalized input.
+If any alias matches, return that plant immediately.
+Pseudocode:
+
+for each plant in _plant_db.values():
+    aliases_lower = [alias.lower() for alias in plant["aliases"]]
+    if normalized in aliases_lower:
+        return found True with that plant
 ```
 
 ---
@@ -80,7 +87,7 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 *When a plant isn't found, the agent will read your message and use it to decide what to tell the user. Write the exact string you'll return — make it useful to the agent, not just to a human reading logs.*
 
 ```
-[your answer here]
+No plant matching '{plant_name}' was found in the database. The database contains common houseplants like pothos, monstera, snake plant, fiddle leaf fig, calathea, and others. Do not invent specific care instructions. Acknowledge that this plant is not in the database, and offer general guidance based on what the user describes about the plant (e.g., succulent, tropical, fern).
 ```
 
 ---
@@ -91,17 +98,17 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 
 **Test: does `"devil's ivy"` return the pothos entry?**
 ```
-[yes / no — if no, describe what happened]
+Yes. Alias matching resolves "devil's ivy" to the full Pothos record.
 ```
 
 **Test: does `"SNAKE PLANT"` return the snake plant entry?**
 ```
-[yes / no — if no, describe what happened]
+Yes. Input normalization (strip + lowercase) handles uppercase input correctly.
 ```
 
 **One edge case you discovered while implementing:**
 ```
-[your answer here]
+Returning the original unnormalized input in the not-found payload can be inconsistent (for example, "  SNAKE PLANT  "). Returning the normalized value in the "name" field keeps downstream agent behavior predictable.
 ```
 
 ---
@@ -183,12 +190,12 @@ The full season dict from `_season_data`, plus a `detected_season` boolean. Exam
 
 **Test: does calling with `season=None` return the correct season for the current month?**
 ```
-Current month: [month]
-Expected season: [season]
-Returned season: [season]
+Current month: June
+Expected season: summer
+Returned season: Summer (from data), with detected_season=True
 ```
 
 **Test: does calling with `season="winter"` return winter data regardless of the current month?**
 ```
-[yes / no]
+Yes. It returns Winter data with detected_season=False.
 ```

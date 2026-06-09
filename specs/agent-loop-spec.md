@@ -122,7 +122,12 @@ for tool_call in assistant_message.tool_calls:
 *The loop should stop when: (a) the LLM returns a response with no tool calls, OR (b) the MAX_TOOL_ROUNDS limit is reached. Describe how you will detect each condition and what you will return in each case.*
 
 ```
-[your answer here]
+Condition A (normal exit): after each LLM call, check `assistant_message.tool_calls`.
+If it is empty/falsy, return `assistant_message.content` (or a safe fallback string if content is empty).
+
+Condition B (safety exit): run the loop for at most `MAX_TOOL_ROUNDS` iterations.
+If the limit is reached while tool calls continue, make one final non-tool LLM call using accumulated messages.
+Return that final message content, or a user-readable fallback string if that call fails.
 ```
 
 ---
@@ -132,7 +137,9 @@ for tool_call in assistant_message.tool_calls:
 *Once the loop exits because there are no more tool calls, how do you extract the text content from the response object? What field holds the string you should return?*
 
 ```
-[your answer here]
+The returnable text is on `response.choices[0].message.content`.
+Inside the loop, after assigning `assistant_message = response.choices[0].message`,
+return `assistant_message.content` when there are no tool calls.
 ```
 
 ---
@@ -145,19 +152,19 @@ for tool_call in assistant_message.tool_calls:
 
 ```
 Query: "How should I care for my calathea?"
-Round 1 tool call: [tool name, args]
-Round 2 tool call: [tool name, args] (if any)
-Final response: [brief description]
+Round 1 tool call: lookup_plant({"plant_name": "calathea"})
+Round 2 tool call: get_seasonal_conditions({})
+Final response: combines calathea-specific guidance with current-season adjustments.
 ```
 
 **What happens when you ask about a plant that isn't in the database?**
 
 ```
-[describe the behavior you observed]
+The agent receives a `found: False` tool result and should acknowledge that the specific plant is not in the local database, then provide general category-level care guidance without inventing exact species-specific values.
 ```
 
 **One thing about the tool call API that surprised you:**
 
 ```
-[your answer here]
+Message ordering is strict: the assistant message containing `tool_calls` must be appended before tool-result messages with matching `tool_call_id`, or the next API call can fail.
 ```

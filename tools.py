@@ -23,39 +23,38 @@ _MONTH_TO_SEASON = {
 def lookup_plant(plant_name: str) -> dict:
     """
     Search the plant database for a plant by name and return its care information.
-
-    TODO — Milestone 1:
-
-    Right now this always returns a "not found" response. Your job is to implement
-    the search logic so it can actually find plants.
-
-    The plant database (_plant_db) is a dict where keys are lowercase slugs like
-    "pothos", "snake_plant", "fiddle_leaf_fig". Each plant also has a "display_name"
-    field and an "aliases" list with common alternate names.
-
-    Your implementation should handle all three:
-      1. Direct key match (e.g., "pothos" → finds "pothos")
-      2. Display name match (e.g., "Pothos" → finds "pothos")
-      3. Alias match (e.g., "devil's ivy" → finds "pothos")
-
-    All matching should be case-insensitive. Strip whitespace from the input.
-
-    Return format when found:
-      {"found": True, "plant": <the full plant dict>}
-
-    Return format when not found:
-      {"found": False, "name": <original input>, "message": <helpful string>}
-
-    The message in the not-found case matters — the agent will use it to decide
-    what to tell the user. Your spec has a dedicated field for this — think about
-    what information would actually be helpful to the agent.
-
-    Before writing code, complete the lookup_plant section of specs/tool-functions-spec.md.
+    Handles direct key match, display name match, and alias match — all case-insensitive.
     """
+    # Step 1: Normalize input — strip whitespace and lowercase everything
+    normalized = plant_name.strip().lower()
+
+    # Step 2: Direct key match — fastest lookup, O(1) dict access
+    # Keys in plants.json are slugs like "pothos", "snake_plant"
+    if normalized in _plant_db:
+        return {"found": True, "plant": _plant_db[normalized]}
+
+    # Step 3: Display name match — e.g. user typed "Pothos" or "Snake Plant"
+    for key, plant in _plant_db.items():
+        if plant["display_name"].lower() == normalized:
+            return {"found": True, "plant": plant}
+
+    # Step 4: Alias match — e.g. user typed "devil's ivy" or "mother-in-law's tongue"
+    for key, plant in _plant_db.items():
+        if normalized in [alias.lower() for alias in plant["aliases"]]:
+            return {"found": True, "plant": plant}
+
+    # Step 5: Nothing matched — return a helpful not-found message the LLM can use
     return {
         "found": False,
-        "name": plant_name,
-        "message": "Plant lookup not yet implemented. Complete Milestone 1.",
+        "name": normalized,
+        "message": (
+            f"No plant matching '{plant_name}' was found in the database. "
+            "The database contains common houseplants like pothos, monstera, snake plant, "
+            "fiddle leaf fig, calathea, and others. "
+            "Do not invent specific care instructions. "
+            "Acknowledge that this plant is not in the database, and offer general guidance "
+            "based on what the user describes about the plant (e.g., succulent, tropical, fern)."
+        ),
     }
 
 
